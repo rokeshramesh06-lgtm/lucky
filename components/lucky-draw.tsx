@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import styles from "./lucky-draw.module.css";
 
@@ -23,6 +23,7 @@ type LuckyDrawProps = {
 };
 
 const SPIN_DURATION_MS = 5200;
+const CELEBRATION_DURATION_MS = 4200;
 const EMPTY_MEMBERS_MESSAGE =
   "The member list is unavailable right now. Check the deployed database configuration and try again.";
 
@@ -34,6 +35,7 @@ export function LuckyDraw({
   const [winner, setWinner] = useState<Winner>(initialWinner);
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
+  const [isCelebrating, setIsCelebrating] = useState(false);
   const [status, setStatus] = useState(
     initialMembers.length === 0
       ? EMPTY_MEMBERS_MESSAGE
@@ -41,8 +43,11 @@ export function LuckyDraw({
       ? `${initialWinner.winnerName} is the current lucky winner.`
       : "Press spin to reveal the lucky winner.",
   );
+  const spinTimeoutRef = useRef<number | null>(null);
+  const celebrationTimeoutRef = useRef<number | null>(null);
 
   const segmentAngle = members.length > 0 ? 360 / members.length : 0;
+  const winnerId = winner?.memberId ?? null;
 
   const wheelBackground = useMemo(() => {
     const colors = [
@@ -68,6 +73,37 @@ export function LuckyDraw({
       .join(", ")})`;
   }, [members, segmentAngle]);
 
+  function clearTimers() {
+    if (spinTimeoutRef.current) {
+      window.clearTimeout(spinTimeoutRef.current);
+      spinTimeoutRef.current = null;
+    }
+
+    if (celebrationTimeoutRef.current) {
+      window.clearTimeout(celebrationTimeoutRef.current);
+      celebrationTimeoutRef.current = null;
+    }
+  }
+
+  function triggerCelebration() {
+    setIsCelebrating(true);
+
+    if (celebrationTimeoutRef.current) {
+      window.clearTimeout(celebrationTimeoutRef.current);
+    }
+
+    celebrationTimeoutRef.current = window.setTimeout(() => {
+      setIsCelebrating(false);
+      celebrationTimeoutRef.current = null;
+    }, CELEBRATION_DURATION_MS);
+  }
+
+  useEffect(() => {
+    return () => {
+      clearTimers();
+    };
+  }, []);
+
   async function handleSpin() {
     if (isSpinning) {
       return;
@@ -78,6 +114,8 @@ export function LuckyDraw({
       return;
     }
 
+    clearTimers();
+    setIsCelebrating(false);
     setIsSpinning(true);
     setStatus("Spinning the wheel...");
 
@@ -111,12 +149,15 @@ export function LuckyDraw({
         return currentRotation + 360 * 7 + delta;
       });
 
-      window.setTimeout(() => {
+      spinTimeoutRef.current = window.setTimeout(() => {
         setWinner(data.winner);
         setStatus(`${data.winner.winnerName} is the lucky winner.`);
         setIsSpinning(false);
+        spinTimeoutRef.current = null;
+        triggerCelebration();
       }, SPIN_DURATION_MS);
     } catch (error) {
+      clearTimers();
       setStatus(
         error instanceof Error ? error.message : "Something went wrong.",
       );
@@ -143,6 +184,8 @@ export function LuckyDraw({
       return;
     }
 
+    clearTimers();
+    setIsCelebrating(false);
     setWinner(null);
     setRotation(0);
     setStatus("The draw has been reset. Spin again to choose a winner.");
@@ -177,10 +220,31 @@ export function LuckyDraw({
           <p className={styles.status}>{status}</p>
         </div>
 
-        <div className={styles.stage}>
+        <div
+          className={[
+            styles.stage,
+            isSpinning ? styles.stageSpinning : "",
+            isCelebrating ? styles.stageCelebrating : "",
+          ].join(" ")}
+        >
+          <div className={styles.aura} aria-hidden="true" />
+          {isCelebrating ? (
+            <div className={styles.confettiField} aria-hidden="true">
+              {Array.from({ length: 14 }).map((_, index) => (
+                <span
+                  key={index}
+                  className={styles.confetti}
+                  style={{ "--index": index } as CSSProperties}
+                />
+              ))}
+            </div>
+          ) : null}
           <div className={styles.pointer} aria-hidden="true" />
           <div
-            className={styles.wheel}
+            className={[
+              styles.wheel,
+              isCelebrating ? styles.wheelCelebrating : "",
+            ].join(" ")}
             style={{
               background: wheelBackground,
               transform: `rotate(${rotation}deg)`,
@@ -202,7 +266,13 @@ export function LuckyDraw({
                 </div>
               );
             })}
-            <div className={styles.wheelCenter}>
+            <div
+              className={[
+                styles.wheelCenter,
+                isSpinning ? styles.wheelCenterSpinning : "",
+                isCelebrating ? styles.wheelCenterCelebrating : "",
+              ].join(" ")}
+            >
               <span>Lucky</span>
               <strong>Draw</strong>
             </div>
@@ -211,16 +281,52 @@ export function LuckyDraw({
       </section>
 
       <section className={styles.panelGrid}>
-        <article className={styles.winnerCard}>
-          <p className={styles.cardLabel}>Current Winner</p>
-          <h2>{winner ? winner.winnerName : "Waiting for the next spin"}</h2>
-          <p>
+        <article
+          className={[
+            styles.winnerCard,
+            winner ? styles.winnerCardReady : "",
+            isCelebrating ? styles.winnerCardCelebrating : "",
+          ].join(" ")}
+        >
+          <div className={styles.winnerHeader}>
+            <p className={styles.cardLabel}>Current Winner</p>
+            <span
+              className={[
+                styles.winnerBadge,
+                isCelebrating ? styles.winnerBadgeCelebrating : "",
+              ].join(" ")}
+            >
+              {winner
+                ? isCelebrating
+                  ? "Fresh Winner"
+                  : "Winner Saved"
+                : "Awaiting Spin"}
+            </span>
+          </div>
+          <h2 className={winner ? styles.winnerName : ""}>
+            {winner ? winner.winnerName : "Waiting for the next spin"}
+          </h2>
+          <p className={styles.winnerDescription}>
             {members.length === 0
               ? "The wheel is disabled until the member list becomes available."
               : winner
-              ? `Selected from ${members.length} members.`
+              ? `${winner.winnerName} was selected from ${members.length} members.`
               : "No winner has been selected yet."}
           </p>
+          {winner ? (
+            <div className={styles.winnerSpotlight}>
+              <span className={styles.spotlightLabel}>Lucky Crowned</span>
+              <strong>{winner.winnerName}</strong>
+              <small>
+                The wheel stopped exactly on the winning segment.
+              </small>
+              <div className={styles.sparkGroup} aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          ) : null}
         </article>
 
         <article className={styles.membersCard}>
@@ -233,10 +339,19 @@ export function LuckyDraw({
               <div className={styles.emptyState}>No members loaded.</div>
             ) : (
               members.map((member, index) => (
-              <div key={member.id} className={styles.memberItem}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <strong>{member.name}</strong>
-              </div>
+                <div
+                  key={member.id}
+                  className={[
+                    styles.memberItem,
+                    winnerId === member.id ? styles.memberItemWinner : "",
+                  ].join(" ")}
+                >
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <strong>{member.name}</strong>
+                  {winnerId === member.id ? (
+                    <em className={styles.memberWinnerTag}>Lucky Pick</em>
+                  ) : null}
+                </div>
               ))
             )}
           </div>

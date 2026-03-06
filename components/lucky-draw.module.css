@@ -107,6 +107,63 @@
   place-items: center;
   padding: 26px;
   min-height: 560px;
+  isolation: isolate;
+}
+
+.stageSpinning .pointer {
+  animation: pointerTick 180ms ease-in-out infinite alternate;
+}
+
+.stageCelebrating .aura {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.aura {
+  position: absolute;
+  width: min(88vw, 620px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255, 251, 245, 0.76) 0%, rgba(242, 185, 153, 0.26) 34%, rgba(181, 93, 76, 0.1) 56%, transparent 72%);
+  filter: blur(14px);
+  opacity: 0;
+  transform: scale(0.84);
+  transition:
+    opacity 320ms ease,
+    transform 320ms ease;
+  z-index: 0;
+}
+
+.confettiField {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.confetti {
+  --size: calc(10px + (var(--index) * 0.28px));
+  position: absolute;
+  left: calc(8% + (var(--index) * 6.2%));
+  top: 48%;
+  width: var(--size);
+  height: calc(var(--size) * 1.7);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff6e7, #d98370);
+  opacity: 0;
+  transform: translate3d(0, 0, 0) rotate(0deg);
+  animation: confettiBurst 1.6s ease-out forwards;
+  animation-delay: calc(var(--index) * 60ms);
+}
+
+.confetti:nth-child(3n) {
+  background: linear-gradient(180deg, #f7d58b, #b55d4c);
+}
+
+.confetti:nth-child(3n + 1) {
+  background: linear-gradient(180deg, #fff8ef, #5e2f46);
 }
 
 .pointer {
@@ -132,6 +189,7 @@
   box-shadow:
     inset 0 0 0 1px rgba(95, 53, 42, 0.16),
     0 26px 50px rgba(71, 35, 26, 0.18);
+  z-index: 1;
 }
 
 .wheel::before {
@@ -186,6 +244,24 @@
   z-index: 2;
 }
 
+.wheelCelebrating {
+  box-shadow:
+    inset 0 0 0 1px rgba(95, 53, 42, 0.16),
+    0 0 0 12px rgba(255, 248, 239, 0.16),
+    0 26px 50px rgba(71, 35, 26, 0.18),
+    0 0 70px rgba(217, 164, 65, 0.34);
+}
+
+.wheelCenterSpinning {
+  animation: centerPulse 900ms ease-in-out infinite;
+}
+
+.wheelCenterCelebrating {
+  animation:
+    centerPulse 900ms ease-in-out 2,
+    winnerBloom 1.2s cubic-bezier(0.21, 0.93, 0.27, 1.1);
+}
+
 .wheelCenter span,
 .wheelCenter strong {
   display: block;
@@ -221,9 +297,161 @@
   line-height: 1;
 }
 
-.winnerCard p:last-child {
+.winnerHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.winnerBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(95, 53, 42, 0.1);
+  color: rgba(78, 50, 44, 0.76);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.winnerBadgeCelebrating {
+  background: linear-gradient(135deg, #5e2f46, #b55d4c);
+  color: #fff8ef;
+  box-shadow: 0 16px 28px rgba(94, 47, 70, 0.22);
+  animation: badgePulse 640ms ease-in-out 4;
+}
+
+.winnerDescription {
   margin-top: 12px;
   color: rgba(78, 50, 44, 0.78);
+}
+
+.winnerCardReady {
+  position: relative;
+  overflow: hidden;
+}
+
+.winnerCardReady::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.56) 50%, transparent 70%);
+  transform: translateX(-120%);
+  opacity: 0;
+}
+
+.winnerCardCelebrating {
+  animation: winnerCardLift 900ms cubic-bezier(0.16, 0.84, 0.24, 1) forwards;
+}
+
+.winnerCardCelebrating::before {
+  opacity: 1;
+  animation: shineSweep 1.2s ease-out forwards;
+}
+
+.winnerName {
+  background: linear-gradient(120deg, #47231a 0%, #8c4f4d 35%, #d9a441 54%, #5e2f46 100%);
+  background-size: 220% 220%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.winnerCardCelebrating .winnerName {
+  animation: winnerGradient 1.8s ease-in-out forwards;
+}
+
+.winnerSpotlight {
+  position: relative;
+  margin-top: 22px;
+  padding: 22px;
+  border-radius: 24px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(247, 213, 139, 0.42));
+  border: 1px solid rgba(217, 164, 65, 0.24);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 18px 30px rgba(71, 35, 26, 0.08);
+  overflow: hidden;
+}
+
+.winnerSpotlight strong,
+.winnerSpotlight small,
+.spotlightLabel {
+  position: relative;
+  z-index: 1;
+}
+
+.winnerSpotlight strong {
+  display: block;
+  margin-top: 8px;
+  font-family: var(--font-display), serif;
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+}
+
+.winnerSpotlight small {
+  display: block;
+  margin-top: 8px;
+  color: rgba(78, 50, 44, 0.76);
+}
+
+.spotlightLabel {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(94, 47, 70, 0.09);
+  color: #8c4f4d;
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sparkGroup {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sparkGroup span {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff8ef 0%, #d9a441 68%, transparent 72%);
+  opacity: 0;
+}
+
+.sparkGroup span:nth-child(1) {
+  top: 20%;
+  right: 14%;
+}
+
+.sparkGroup span:nth-child(2) {
+  bottom: 22%;
+  left: 16%;
+}
+
+.sparkGroup span:nth-child(3) {
+  top: 48%;
+  right: 28%;
+}
+
+.winnerCardCelebrating .sparkGroup span {
+  animation: sparkFloat 1.8s ease-out forwards;
+}
+
+.winnerCardCelebrating .sparkGroup span:nth-child(2) {
+  animation-delay: 140ms;
+}
+
+.winnerCardCelebrating .sparkGroup span:nth-child(3) {
+  animation-delay: 280ms;
 }
 
 .cardHeader {
@@ -249,6 +477,11 @@
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.62);
   border: 1px solid rgba(95, 53, 42, 0.1);
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease,
+    background-color 220ms ease;
 }
 
 .memberItem span {
@@ -262,12 +495,145 @@
   font-size: 0.8rem;
 }
 
+.memberItemWinner {
+  position: relative;
+  background: linear-gradient(135deg, rgba(255, 248, 239, 0.94), rgba(247, 213, 139, 0.5));
+  border-color: rgba(217, 164, 65, 0.34);
+  box-shadow: 0 18px 32px rgba(181, 93, 76, 0.12);
+  transform: translateY(-2px);
+}
+
+.memberWinnerTag {
+  margin-left: auto;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(94, 47, 70, 0.1);
+  color: #8c4f4d;
+  font-size: 0.7rem;
+  font-style: normal;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .emptyState {
   padding: 18px;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.62);
   border: 1px solid rgba(95, 53, 42, 0.1);
   color: rgba(78, 50, 44, 0.78);
+}
+
+@keyframes pointerTick {
+  from {
+    transform: translateX(-50%) rotate(-7deg);
+  }
+
+  to {
+    transform: translateX(-50%) rotate(7deg);
+  }
+}
+
+@keyframes centerPulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+}
+
+@keyframes winnerBloom {
+  0% {
+    transform: translate(-50%, -50%) scale(0.82);
+    filter: saturate(0.9);
+  }
+
+  70% {
+    transform: translate(-50%, -50%) scale(1.1);
+    filter: saturate(1.12);
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    filter: saturate(1);
+  }
+}
+
+@keyframes confettiBurst {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(0.8);
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(calc((var(--index) - 7) * 7px), calc(-150px - (var(--index) * 4px)), 0) rotate(calc((var(--index) - 5) * 24deg)) scale(1.05);
+  }
+}
+
+@keyframes badgePulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes shineSweep {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes winnerCardLift {
+  0% {
+    transform: translateY(14px) scale(0.98);
+    box-shadow: 0 20px 40px rgba(71, 35, 26, 0.08);
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 30px 60px rgba(71, 35, 26, 0.16);
+  }
+}
+
+@keyframes winnerGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes sparkFloat {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+
+  25% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-28px) scale(1.2);
+  }
 }
 
 @media (max-width: 980px) {
@@ -287,6 +653,11 @@
   .stage {
     min-height: auto;
     padding-top: 54px;
+  }
+
+  .winnerHeader {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
@@ -327,5 +698,38 @@
 
   .memberList {
     grid-template-columns: 1fr;
+  }
+
+  .winnerSpotlight {
+    padding: 18px;
+  }
+
+  .memberItem {
+    flex-wrap: wrap;
+  }
+
+  .memberWinnerTag {
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stageSpinning .pointer,
+  .wheelCenterSpinning,
+  .wheelCenterCelebrating,
+  .winnerBadgeCelebrating,
+  .winnerCardCelebrating,
+  .winnerCardCelebrating::before,
+  .winnerCardCelebrating .winnerName,
+  .winnerCardCelebrating .sparkGroup span,
+  .confetti {
+    animation: none !important;
+  }
+
+  .primaryButton,
+  .secondaryButton,
+  .memberItem,
+  .aura {
+    transition: none;
   }
 }
