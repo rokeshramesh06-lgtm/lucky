@@ -262,6 +262,14 @@
   font-size: 0.8rem;
 }
 
+.emptyState {
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(95, 53, 42, 0.1);
+  color: rgba(78, 50, 44, 0.78);
+}
+
 @media (max-width: 980px) {
   .hero,
   .panelGrid {

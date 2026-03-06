@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 import Database from "better-sqlite3";
@@ -16,7 +17,10 @@ const SEED_MEMBERS = [
   "Anaya",
 ];
 
-const dataDirectory = path.join(process.cwd(), "data");
+const dataDirectory =
+  process.env.VERCEL === "1"
+    ? path.join(os.tmpdir(), "lucky-draw")
+    : path.join(process.cwd(), "data");
 const databasePath = path.join(dataDirectory, "lucky-draw.db");
 
 type MemberRow = {

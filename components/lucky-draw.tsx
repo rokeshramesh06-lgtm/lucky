@@ -23,6 +23,8 @@ type LuckyDrawProps = {
 };
 
 const SPIN_DURATION_MS = 5200;
+const EMPTY_MEMBERS_MESSAGE =
+  "The member list is unavailable right now. Check the deployed database configuration and try again.";
 
 export function LuckyDraw({
   initialMembers,
@@ -33,12 +35,14 @@ export function LuckyDraw({
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [status, setStatus] = useState(
-    initialWinner
+    initialMembers.length === 0
+      ? EMPTY_MEMBERS_MESSAGE
+      : initialWinner
       ? `${initialWinner.winnerName} is the current lucky winner.`
       : "Press spin to reveal the lucky winner.",
   );
 
-  const segmentAngle = 360 / members.length;
+  const segmentAngle = members.length > 0 ? 360 / members.length : 0;
 
   const wheelBackground = useMemo(() => {
     const colors = [
@@ -66,6 +70,11 @@ export function LuckyDraw({
 
   async function handleSpin() {
     if (isSpinning) {
+      return;
+    }
+
+    if (members.length === 0) {
+      setStatus(EMPTY_MEMBERS_MESSAGE);
       return;
     }
 
@@ -120,6 +129,11 @@ export function LuckyDraw({
       return;
     }
 
+    if (members.length === 0) {
+      setStatus(EMPTY_MEMBERS_MESSAGE);
+      return;
+    }
+
     const response = await fetch("/api/lucky/reset", {
       method: "POST",
     });
@@ -148,14 +162,14 @@ export function LuckyDraw({
             <button
               className={styles.primaryButton}
               onClick={handleSpin}
-              disabled={isSpinning}
+              disabled={isSpinning || members.length === 0}
             >
               {isSpinning ? "Spinning..." : "Spin the Wheel"}
             </button>
             <button
               className={styles.secondaryButton}
               onClick={handleReset}
-              disabled={isSpinning}
+              disabled={isSpinning || members.length === 0}
             >
               Reset Draw
             </button>
@@ -201,7 +215,9 @@ export function LuckyDraw({
           <p className={styles.cardLabel}>Current Winner</p>
           <h2>{winner ? winner.winnerName : "Waiting for the next spin"}</h2>
           <p>
-            {winner
+            {members.length === 0
+              ? "The wheel is disabled until the member list becomes available."
+              : winner
               ? `Selected from ${members.length} members.`
               : "No winner has been selected yet."}
           </p>
@@ -213,12 +229,16 @@ export function LuckyDraw({
             <span>{members.length} total</span>
           </div>
           <div className={styles.memberList}>
-            {members.map((member, index) => (
+            {members.length === 0 ? (
+              <div className={styles.emptyState}>No members loaded.</div>
+            ) : (
+              members.map((member, index) => (
               <div key={member.id} className={styles.memberItem}>
                 <span>{String(index + 1).padStart(2, "0")}</span>
                 <strong>{member.name}</strong>
               </div>
-            ))}
+              ))
+            )}
           </div>
         </article>
       </section>
